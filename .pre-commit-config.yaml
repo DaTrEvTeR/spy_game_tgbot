@@ -43,8 +43,8 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=500]
       # No commits to master or main.
-      # - id: no-commit-to-branch
-      #   args: [--branch=master, --branch=main]
+      - id: no-commit-to-branch
+        args: [--branch=master, --branch=main]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v3.1.0
