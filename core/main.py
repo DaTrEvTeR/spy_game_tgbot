@@ -2,9 +2,11 @@ import asyncio
 import logging
 import sys
 
-import handlers  # noqa: F401
-from config import bot, dp
+from core.config import bot, dp
+from utils.init_routes import init_routes
 
-if __name__ == "__main__":
+
+def main() -> None:
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    init_routes(dp=dp)
     asyncio.run(dp.start_polling(bot))
