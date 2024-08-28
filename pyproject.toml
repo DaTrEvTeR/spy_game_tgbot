@@ -54,7 +54,8 @@ extend-ignore = [
     "ANN003",
     "ERA001",
     # Conflict with ruff formatter
-    "D205"
+    "D205",
+    "RUF001",
 ]
 
 task-tags = [
