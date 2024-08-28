@@ -4,14 +4,14 @@ import routers
 from utils.find_attributes_recursively import find_attributes_recursively
 
 
-def get_routers() -> list:
-    """Retrieves all application routers from nested modules within the `src` module.
-
-    This function searches for all instances of `APIRouter` defined in any module named "routes"
+def get_routers() -> list[Router]:
+    """This function retrieves all instances of `Router` defined in any module named "routes"
     within the `src` package and its subpackages.
 
-    :return: A list of `APIRouter` instances found in the "routes" modules across the application.
-    :rtype: list
+    Returns:
+    -------
+    list[Router]
+        A list of `Router` instances found in the "routes" modules across the routers package.
     """
     return list(
         find_attributes_recursively(

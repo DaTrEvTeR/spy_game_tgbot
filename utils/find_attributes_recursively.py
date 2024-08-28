@@ -13,17 +13,22 @@ def find_attributes_recursively(
     """Recursively searches through a module and its submodules to find global attributes
     based on their name and/or type.
 
-    :param module: The root module from which the search will begin.
-    :type module: ModuleType
-    :param attribute_name: The specific name of the attribute to find. If None, finds all attributes.
-    :type attribute_name: str | None
-    :param attribute_type: The type of the attribute to find. If None, finds all types.
-    :type attribute_type: type | None
-    :param match_module_name: A specific module name to search within. If None, searches all submodules.
-    :type match_module_name: str | None
-    :return: A dictionary where the keys are unique IDs of the found attributes,
-    and the values are the attributes themselves.
-    :rtype: Dict[int, Any]
+    Parameters
+    ----------
+    module : ModuleType
+        The root module from which the search will begin
+    attribute_name : str | None, optional
+        The specific name of the attribute to find. If None, finds all attributes, by default None
+    attribute_type : type | None, optional
+        The type of the attribute to find. If None, finds all types, by default None
+    match_module_name : str | None, optional
+        A specific module name to search within. If None, searches all submodules, by default None
+
+    Returns:
+    -------
+    Dict[int, Any]
+        A dictionary where the keys are unique IDs of the found attributes,
+        and the values are the attributes themselves.
     """
     attributes: Dict[int, Any] = {}
     for loader, module_name, is_pkg in pkgutil.walk_packages(module.__path__):
