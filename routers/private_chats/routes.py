@@ -3,7 +3,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from core.settings import settings
-from routers.base import keyboards as kb
+from routers.private_chats import keyboards as kb
 
 router = Router(name="private_chat_router")
 router.message.filter(
