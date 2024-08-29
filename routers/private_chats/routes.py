@@ -3,7 +3,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from core.settings import settings
-from routers.private_chats import keyboards as kb
+from routers.private_chats.keyboards import replykeyboard
 
 router = Router(name="private_chat_router")
 router.message.filter(
@@ -24,7 +24,7 @@ async def command_start_handler(message: Message) -> None:
     """
     await message.answer(
         text=f"Hello, {html.bold(message.from_user.full_name)}!",
-        reply_markup=kb.replykeyboard,
+        reply_markup=replykeyboard,
     )
 
 

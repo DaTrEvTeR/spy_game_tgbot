@@ -56,6 +56,8 @@ extend-ignore = [
     # Conflict with ruff formatter
     "D205",
     "RUF001",
+    "COM812",
+    "ISC001",
 ]
 
 task-tags = [

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
 
     minimal_player_count: int = 4
     start_game_command: str = "start_game"
+    registration_time: int = 1  # Time for registration for game after command `start_game_command` in minutes
 
     model_config = ConfigDict(
         extra="ignore",
