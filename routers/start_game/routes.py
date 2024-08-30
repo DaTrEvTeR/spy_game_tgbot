@@ -1,13 +1,10 @@
-import logging
-
 from aiogram import Bot, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
-from routers.start_game.keyboards import reg
-from routers.start_game.states import GameStates
+from routers.start_game.services import check_null_state, reg_button_logic, start_game_now_logic, start_registration
 
 router = Router(name="start_game")
 router.message.filter(
@@ -27,18 +24,8 @@ async def registration_for_the_game(message: Message, state: FSMContext) -> None
     message : Message
         Message with command /{settings.start_game_command}
     """
-    cur_state = await state.get_state()
-    if cur_state == GameStates.game.state:
-        await message.answer("Игра уже идет!")
-    elif cur_state == GameStates.registration.state:
-        await message.answer("Регистрация уже началась!")
-    else:
-        await state.set_state(GameStates.registration)
-        await state.update_data(players=set())
-        await message.answer(
-            text="Началась регистрация на игру",
-            reply_markup=reg,
-        )
+    if await check_null_state(message, state):
+        await start_registration(message, state)
 
 
 @router.callback_query(F.data == "reg")
@@ -50,25 +37,7 @@ async def register_user(callback: CallbackQuery, state: FSMContext) -> None:
     callback : CallbackQuery
         Callback with data "reg"
     """
-    data = await state.get_data()
-    players: set = data.get("players", set())
-    user_id = callback.from_user.id
-    if user_id not in players:
-        players.add(user_id)
-        await state.update_data(players=players)
-        await callback.answer("Вы присоединились к игре! Для отмены нажмите кнопку 'Присоединиться' еще раз")
-        logging.info(
-            f"User {callback.from_user.username} - {callback.from_user.full_name} "
-            f"- {callback.from_user.id} joined the game"
-        )
-    else:
-        players.remove(user_id)
-        await state.update_data(players=players)
-        await callback.answer("Вы покинули игру!")
-        logging.info(
-            f"User {callback.from_user.username} - {callback.from_user.full_name} "
-            f"- {callback.from_user.id} left the game"
-        )
+    await reg_button_logic(callback, state)
 
 
 @router.callback_query(F.data == "rules")
@@ -88,3 +57,8 @@ async def show_rules(callback: CallbackQuery, bot: Bot) -> None:
         chat_id=callback.from_user.id,
         text=settings.game_rules,
     )
+
+
+@router.callback_query(F.data == "start_now")
+async def start_game_now(callback: CallbackQuery, state: FSMContext) -> None:
+    await start_game_now_logic(callback, state)

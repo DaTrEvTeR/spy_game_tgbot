@@ -13,9 +13,9 @@ class Settings(BaseSettings):
 
     bot_api_token: str
 
-    minimal_player_count: int = 4
+    minimal_player_count: int = 2
     start_game_command: str = "start_game"
-    registration_time: int = 1  # Time for registration for game after command `start_game_command` in minutes
+    registration_time: int = 60  # Time for registration for game after command `start_game_command` in sec
 
     model_config = ConfigDict(
         extra="ignore",
@@ -41,10 +41,10 @@ class Settings(BaseSettings):
         return (
             "Для начала добавьте бота в чат, в котором вы хотите поиграть в шпиона\n"
             f"Пропишите команду /{self.start_game_command}\n"
-            "На 1 минуту бот присылает сообщение об регистрации в игру\n"
+            f"На {settings.registration_time // 60} мин бот присылает сообщение об регистрации в игру\n"
             f"Если не наберется минимальное количество игроков({self.minimal_player_count}) - игра отменяется\n"
             "Если набралось достаточное количество игроков начинается игровой процесс - "
-            "просто читайте сообщения бота и наслаждайтесь игрой"
+            "просто следуйте сообщениям бота и наслаждайтесь игрой"
         )
 
 
