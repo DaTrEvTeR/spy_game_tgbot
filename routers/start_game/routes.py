@@ -61,4 +61,13 @@ async def show_rules(callback: CallbackQuery, bot: Bot) -> None:
 
 @router.callback_query(F.data == "start_now")
 async def start_game_now(callback: CallbackQuery, state: FSMContext) -> None:
+    """Handle callback data "start_now" to immediately start the game.
+
+    Parameters
+    ----------
+    callback : CallbackQuery
+        Callback with data "start_now"
+    state : FSMContext
+        The current state of the FSM used to manage the game process.
+    """
     await start_game_now_logic(callback, state)
