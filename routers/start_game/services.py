@@ -53,7 +53,7 @@ async def start_registration(message: Message, state: FSMContext) -> None:
         reply_markup=reg,
     )
 
-    await manage_registration_timer(state, reg_message)
+    await manage_registration_timer(reg_message=reg_message, state=state)
 
 
 async def manage_registration_timer(reg_message: Message, state: FSMContext) -> None:
