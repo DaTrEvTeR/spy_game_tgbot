@@ -3,7 +3,7 @@ import logging
 from asyncio import CancelledError
 
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, User
 
 from core.settings import settings
 from routers.start_game.helpers import get_players_set_from_state, is_players_enough
@@ -49,7 +49,7 @@ async def start_registration(message: Message, state: FSMContext) -> None:
     await state.update_data(players=set())
 
     reg_message = await message.answer(
-        text="Началась регистрация на игру",
+        text=settings.start_registration_msg,
         reply_markup=reg,
     )
 
@@ -145,13 +145,14 @@ async def reg_button_logic(callback: CallbackQuery, state: FSMContext) -> None:
     """
     players = await get_players_set_from_state(state)
 
-    user_id = callback.from_user.id
+    user = callback.from_user
 
-    if user_id not in players:
-        players.add(user_id)
+    if user not in players:
+        players.add(user)
         await state.update_data(players=players)
 
         await callback.answer("Вы присоединились к игре! Для отмены нажмите кнопку 'Присоединиться' еще раз")
+        await update_reg_msg(reg_msg=callback.message, players=players)
 
         logging.info(
             f"User {callback.from_user.username} - {callback.from_user.full_name} "
@@ -159,12 +160,43 @@ async def reg_button_logic(callback: CallbackQuery, state: FSMContext) -> None:
         )
 
     else:
-        players.remove(user_id)
+        players.remove(user)
         await state.update_data(players=players)
 
         await callback.answer("Вы покинули игру!")
+        await update_reg_msg(reg_msg=callback.message, players=players)
 
         logging.info(
             f"User {callback.from_user.username} - {callback.from_user.full_name} "
             f"- {callback.from_user.id} left the game"
         )
+
+
+async def update_reg_msg(reg_msg: Message, players: set[User]) -> None:
+    """Updates the registration message to reflect the current list of players.
+
+    This function modifies the text of the given message
+    to include the updated list of players who have joined the game.
+    If there are players in the game, their usernames will be listed in the message. If there are no players,
+    only the initial registration message will be shown.
+
+    Parameters
+    ----------
+    reg_msg : Message
+        The message object that will be updated with the new text and inline keyboard.
+        This is the message where the registration information is displayed.
+
+    players : set[User]
+        A set of `User` objects representing the players who have joined the game.
+        Each `User` object must have a `username` attribute to be displayed in the message.
+    """
+    if len(players) >= 1:
+        players_str = ""
+        for player in players:
+            players_str += f"@{player.username}, "
+        await reg_msg.edit_text(
+            text=f"{settings.start_registration_msg}\n\nУже присоединилось {len(players)} человек:\n{players_str}",
+            reply_markup=reg,
+        )
+    else:
+        await reg_msg.edit_text(text=settings.start_registration_msg, reply_markup=reg)
