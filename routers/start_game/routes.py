@@ -1,4 +1,4 @@
-from aiogram import Bot, F, Router
+from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -41,7 +41,7 @@ async def register_user(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(F.data == "rules")
-async def show_rules(callback: CallbackQuery, bot: Bot) -> None:
+async def show_rules(callback: CallbackQuery) -> None:
     """Handle callback data "rules".
 
     Parameters
@@ -49,12 +49,8 @@ async def show_rules(callback: CallbackQuery, bot: Bot) -> None:
     callback : CallbackQuery
         Callback with data "rules"
     """
-    await callback.answer(
-        text="Правила отправлены вам в лс",
-        show_alert=True,
-    )
-    await bot.send_message(
-        chat_id=callback.from_user.id,
+    await callback.answer()
+    await callback.message.answer(
         text=settings.game_rules,
     )
 
