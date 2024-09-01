@@ -26,6 +26,7 @@ class Settings(BaseSettings):
 
     @property
     def game_rules(self) -> str:
+        """Get formatted game rules."""
         return (
             "В этой игре вы можете оказаться где угодно: в школе, в полицейском участке, "
             "в пустыне Сахаре или даже на космической станции.\n"
@@ -39,10 +40,18 @@ class Settings(BaseSettings):
 
     @property
     def how_use_bot(self) -> str:
+        """Get formatted help on how to use the bot."""
+        time_min = ""
+        time_sec = ""
+        if self.registration_time // 60 >= 1:
+            time_min = f"{self.registration_time // 60} мин"
+        if self.registration_time % 60 != 0:
+            time_sec = f"{self.registration_time % 60} сек"
+        time = f"{time_min} {time_sec}".strip()
         return (
             "Для начала добавьте бота в чат, в котором вы хотите поиграть в шпиона\n"
             f"Пропишите команду /{self.start_game_command}\n"
-            f"На {settings.registration_time // 60} мин бот присылает сообщение об регистрации в игру\n"
+            f"На {time} бот присылает сообщение об регистрации в игру\n"
             f"Если не наберется минимальное количество игроков({self.minimal_player_count}) - игра отменяется\n"
             "Если набралось достаточное количество игроков начинается игровой процесс - "
             "просто следуйте сообщениям бота и наслаждайтесь игрой"

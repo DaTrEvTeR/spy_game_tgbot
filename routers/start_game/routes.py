@@ -41,7 +41,7 @@ async def register_user(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(F.data == "rules")
-async def show_rules(callback: CallbackQuery) -> None:
+async def show_rules(callback: CallbackQuery, state: FSMContext) -> None:
     """Handle callback data "rules".
 
     Parameters
@@ -49,10 +49,16 @@ async def show_rules(callback: CallbackQuery) -> None:
     callback : CallbackQuery
         Callback with data "rules"
     """
-    await callback.answer()
-    await callback.message.answer(
-        text=settings.game_rules,
-    )
+    data = await state.get_data()
+    is_rules_in_chat = data.get("is_rules_in_chat")
+    if is_rules_in_chat:
+        await callback.answer("Правила уже в чате!")
+    else:
+        await state.update_data(is_rules_in_chat=True)
+        await callback.answer()
+        await callback.message.answer(
+            text=settings.game_rules,
+        )
 
 
 @router.callback_query(F.data == "start_now")
