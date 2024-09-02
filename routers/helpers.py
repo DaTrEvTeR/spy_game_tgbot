@@ -1,6 +1,7 @@
 from typing import Set
 
 from aiogram.fsm.context import FSMContext
+from aiogram.types import User
 
 from core.settings import settings
 
@@ -41,3 +42,19 @@ async def is_players_enough(state: FSMContext) -> bool:
     """
     players = await get_players_set_from_state(state)
     return len(players) >= settings.minimal_player_count
+
+
+def get_player_username_or_firstname(player: User) -> str:
+    """Function to get username or first name from User object.
+
+    Parameters
+    ----------
+    player : User
+        User object of player, which needed to get username|first_name
+
+    Returns:
+    -------
+    str
+        Returns a representation of the user as "@username" if the username is available, or "first_name" otherwise.
+    """
+    return f"@{player.username}" if player.username else str(player.first_name)

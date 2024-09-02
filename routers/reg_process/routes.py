@@ -4,7 +4,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
-from routers.start_game.services import check_null_state, reg_button_logic, start_game_now_logic, start_registration
+from routers.reg_process.services import (
+    check_null_state,
+    game_cancel,
+    manage_registration_timer,
+    reg_button_logic,
+    start_game,
+    start_game_now_logic,
+    start_registration,
+)
 
 router = Router(name="start_game")
 router.message.filter(
@@ -25,7 +33,12 @@ async def registration_for_the_game(message: Message, state: FSMContext) -> None
         Message with command /{settings.start_game_command}
     """
     if await check_null_state(message, state):
-        await start_registration(message, state)
+        reg_message = await start_registration(message=message, state=state)
+        is_start_game = await manage_registration_timer(state=state)
+        if is_start_game:
+            await start_game(reg_message=reg_message, state=state)
+        else:
+            await game_cancel(reg_message=reg_message, state=state)
 
 
 @router.callback_query(F.data == "reg")
