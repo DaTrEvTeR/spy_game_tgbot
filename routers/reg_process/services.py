@@ -1,17 +1,16 @@
 import asyncio
 from random import randint
 
-from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, Update, User
 
 from core.config import bot, dp
 from core.settings import settings
-from routers.game_states import GameStates
-from routers.helpers import get_player_username_or_firstname, get_players_set_from_state, is_players_enough
+from routers.game_states import GameData, GameStates
+from routers.helpers import get_str_players_list
 from routers.reg_process.keyboards import reg
 
 
-async def check_null_state(message: Message, state: FSMContext) -> bool:
+async def check_null_state(message: Message, game_data: GameData) -> bool:
     """Checks the current game state and sends a message
     if the game is already in progress or registration has started.
 
@@ -22,7 +21,7 @@ async def check_null_state(message: Message, state: FSMContext) -> bool:
     state : FSMContext
         The current state of the FSM used to track the game's status.
     """
-    cur_state = await state.get_state()
+    cur_state = await game_data.state.get_state()
 
     if cur_state == GameStates.game.state:
         await message.answer("Игра уже идет!")
@@ -35,7 +34,7 @@ async def check_null_state(message: Message, state: FSMContext) -> bool:
     return True
 
 
-async def start_registration(message: Message, state: FSMContext) -> Message:
+async def start_registration(message: Message, game_data: GameData) -> Message:
     """Starts the registration process for the game and sets up the registration timer.
 
     Parameters
@@ -45,16 +44,14 @@ async def start_registration(message: Message, state: FSMContext) -> Message:
     state : FSMContext
         The current state of the FSM used to track the game's state and registered players.
     """
-    await state.set_state(GameStates.registration)
-    await state.update_data(players=set())
-
+    await game_data.state.set_state(GameStates.registration)
     return await message.answer(
         text=settings.start_registration_msg,
         reply_markup=reg,
     )
 
 
-async def manage_registration_timer(state: FSMContext) -> bool:
+async def manage_registration_timer(game_data: GameData) -> bool:
     """Manages the registration timer for starting or canceling a game.
 
     This function initiates a timer for the registration period and handles the game start or cancellation
@@ -70,16 +67,17 @@ async def manage_registration_timer(state: FSMContext) -> bool:
         The current game state used to track ongoing processes and data.
     """
     timer = asyncio.create_task(asyncio.sleep(settings.registration_time))
-    await state.update_data(registration_task=timer)
+    game_data.registration_task = timer
+    await game_data.save()
 
     try:
         await timer
-        return await is_players_enough(state=state)
+        return game_data.is_players_enough()
     except asyncio.CancelledError:
         return True
 
 
-async def start_game(reg_message: Message, state: FSMContext) -> None:
+async def start_game(reg_message: Message, game_data: GameData) -> None:
     """Starts the game if the required number of players is reached.
 
     Parameters
@@ -90,7 +88,7 @@ async def start_game(reg_message: Message, state: FSMContext) -> None:
         The current state of the FSM used to track the game's state.
     """
     await reg_message.edit_text(text="Набрано нужное количество игроков. Игра начинается.", reply_markup=None)
-    await state.set_state(GameStates.game)
+    await game_data.state.set_state(GameStates.game)
 
     callback_query = CallbackQuery(
         id="manual",
@@ -105,7 +103,7 @@ async def start_game(reg_message: Message, state: FSMContext) -> None:
     await dp.feed_update(bot=bot, update=update)
 
 
-async def game_cancel(reg_message: Message, state: FSMContext) -> None:
+async def game_cancel(reg_message: Message, game_data: GameData) -> None:
     """Cancels the game if the required number of players is not reached.
 
     Parameters
@@ -116,10 +114,10 @@ async def game_cancel(reg_message: Message, state: FSMContext) -> None:
         The current state of the FSM used to clear the game's state.
     """
     await reg_message.edit_text(text="Недостаточно игроков. Регистрация отменена.", reply_markup=None)
-    await state.clear()
+    await game_data.state.clear()
 
 
-async def start_game_now_logic(callback: CallbackQuery, state: FSMContext) -> None:
+async def start_game_now_logic(callback: CallbackQuery, game_data: GameData) -> None:
     """Handles the logic for starting the game immediately if players press the start now button.
 
     Parameters
@@ -129,17 +127,15 @@ async def start_game_now_logic(callback: CallbackQuery, state: FSMContext) -> No
     state : FSMContext
         The current state of the FSM used to check the number of players and cancel the registration timer.
     """
-    if await is_players_enough(state):
-        data = await state.get_data()
-        registration_task = data.get("registration_task")
-        registration_task.cancel()
+    if game_data.is_players_enough():
+        game_data.registration_task.cancel()  # type: ignore
     else:
         await callback.answer(
             f"Минимальное количество игроков для начала игры: {settings.minimal_player_count}", show_alert=True
         )
 
 
-async def reg_button_logic(callback: CallbackQuery, state: FSMContext) -> None:
+async def reg_button_logic(callback: CallbackQuery, game_data: GameData) -> None:
     """Handles the logic for the registration button to join or leave the game.
 
     Parameters
@@ -149,23 +145,21 @@ async def reg_button_logic(callback: CallbackQuery, state: FSMContext) -> None:
     state : FSMContext
         The current state of the FSM used to update the list of players.
     """
-    players = await get_players_set_from_state(state)
-
     user = callback.from_user
 
-    if user not in players:
-        players.add(user)
-        await state.update_data(players=players)
+    if user not in game_data.players:
+        game_data.players.add(user)
+        await game_data.save()
 
         await callback.answer("Вы присоединились к игре! Для отмены нажмите кнопку 'Присоединиться' еще раз")
-        await update_reg_msg(reg_msg=callback.message, players=players)
+        await update_reg_msg(reg_msg=callback.message, players=game_data.players)
 
     else:
-        players.remove(user)
-        await state.update_data(players=players)
+        game_data.players.remove(user)
+        await game_data.save()
 
         await callback.answer("Вы покинули игру!")
-        await update_reg_msg(reg_msg=callback.message, players=players)
+        await update_reg_msg(reg_msg=callback.message, players=game_data.players)
 
 
 async def update_reg_msg(reg_msg: Message, players: set[User]) -> None:
@@ -187,10 +181,7 @@ async def update_reg_msg(reg_msg: Message, players: set[User]) -> None:
         Each `User` object must have a `username` attribute to be displayed in the message.
     """
     if len(players) >= 1:
-        players_str = ""
-        for player in players:
-            player_str = get_player_username_or_firstname(player)
-            players_str += f"{player_str}, "
+        players_str = get_str_players_list(players)
         await reg_msg.edit_text(
             text=f"{settings.start_registration_msg}\n\nУже присоединилось {len(players)} человек:\n{players_str}",
             reply_markup=reg,

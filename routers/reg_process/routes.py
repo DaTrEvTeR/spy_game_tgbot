@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
+from routers.game_states import GameData
 from routers.reg_process.services import (
     check_null_state,
     game_cancel,
@@ -32,13 +33,14 @@ async def registration_for_the_game(message: Message, state: FSMContext) -> None
     message : Message
         Message with command /{settings.start_game_command}
     """
-    if await check_null_state(message, state):
-        reg_message = await start_registration(message=message, state=state)
-        is_start_game = await manage_registration_timer(state=state)
+    game_data = await GameData.init(state=state)
+    if await check_null_state(message=message, game_data=game_data):
+        reg_message = await start_registration(message=message, game_data=game_data)
+        is_start_game = await manage_registration_timer(game_data=game_data)
         if is_start_game:
-            await start_game(reg_message=reg_message, state=state)
+            await start_game(reg_message=reg_message, game_data=game_data)
         else:
-            await game_cancel(reg_message=reg_message, state=state)
+            await game_cancel(reg_message=reg_message, game_data=game_data)
 
 
 @router.callback_query(F.data == "reg")
@@ -50,7 +52,8 @@ async def register_user(callback: CallbackQuery, state: FSMContext) -> None:
     callback : CallbackQuery
         Callback with data "reg"
     """
-    await reg_button_logic(callback, state)
+    game_data = await GameData.init(state=state)
+    await reg_button_logic(callback=callback, game_data=game_data)
 
 
 @router.callback_query(F.data == "rules")
@@ -85,4 +88,5 @@ async def start_game_now(callback: CallbackQuery, state: FSMContext) -> None:
     state : FSMContext
         The current state of the FSM used to manage the game process.
     """
-    await start_game_now_logic(callback, state)
+    game_data = await GameData.init(state=state)
+    await start_game_now_logic(callback=callback, game_data=game_data)

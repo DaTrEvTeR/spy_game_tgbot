@@ -59,6 +59,7 @@ extend-ignore = [
     "COM812",
     "ISC001",
     "S311",
+    "PGH003",
 ]
 
 task-tags = [
