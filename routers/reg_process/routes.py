@@ -38,7 +38,7 @@ async def registration_for_the_game(message: Message, state: FSMContext) -> None
         reg_message = await start_registration(message=message, game_data=game_data)
         is_start_game = await manage_registration_timer(game_data=game_data)
         if is_start_game:
-            await start_game(reg_message=reg_message, game_data=game_data)
+            await start_game(reg_message=reg_message)
         else:
             await game_cancel(reg_message=reg_message, game_data=game_data)
 

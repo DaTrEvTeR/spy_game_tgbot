@@ -24,11 +24,11 @@ async def check_null_state(message: Message, game_data: GameData) -> bool:
     cur_state = await game_data.state.get_state()
 
     if cur_state == GameStates.game.state:
-        await message.answer("Игра уже идет!")
+        await message.answer("Игра уже идет!", disable_notification=True)
         return False
 
     if cur_state == GameStates.registration.state:
-        await message.answer("Регистрация уже началась!")
+        await message.answer("Регистрация уже началась!", disable_notification=True)
         return False
 
     return True
@@ -77,7 +77,7 @@ async def manage_registration_timer(game_data: GameData) -> bool:
         return True
 
 
-async def start_game(reg_message: Message, game_data: GameData) -> None:
+async def start_game(reg_message: Message) -> None:
     """Starts the game if the required number of players is reached.
 
     Parameters
@@ -88,7 +88,6 @@ async def start_game(reg_message: Message, game_data: GameData) -> None:
         The current state of the FSM used to track the game's state.
     """
     await reg_message.edit_text(text="Набрано нужное количество игроков. Игра начинается.", reply_markup=None)
-    await game_data.state.set_state(GameStates.game)
 
     callback_query = CallbackQuery(
         id="manual",
