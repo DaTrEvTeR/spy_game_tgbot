@@ -2,12 +2,12 @@ from random import choice, shuffle
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, User
+from aiogram.types import CallbackQuery, Message, User
 
 from core.settings import settings
-from routers.game_process.keyboards import my_role
+from routers.game_process.keyboards import complete_msg, my_role
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_str_players_list
+from routers.helpers import get_player_username_or_firstname, get_str_players_list
 
 router = Router(name="game_process")
 
@@ -38,6 +38,13 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer(
         f"Участники:\n{get_str_players_list(game_data.players)}\nШпионов среди них: {len(game_data.spies)}",
         reply_markup=my_role,
+    )
+    await callback.message.answer(
+        text=(
+            f"{get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index])} задает вопрос "
+            f"{get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index+1])}:"
+        ),
+        reply_markup=complete_msg,
     )
 
 
@@ -118,3 +125,83 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
             ),
             show_alert=True,
         )
+
+
+@router.callback_query(F.data == "finished")
+async def game_chat(callback: CallbackQuery, state: FSMContext) -> None:
+    """Handles the callback when a game turn is finished and proceeds to the next player's turn.
+
+    This function checks whether the user who initiated the callback is the current player
+    allowed to take a turn. If not, it shows an alert. If the user is the current player,
+    the function advances the turn, toggling between question and answer turns, and notifies
+    the next player accordingly.
+
+    Parameters
+    ----------
+    callback : CallbackQuery
+        The callback query triggered by the user.
+    state : FSMContext
+        The FSMContext storing the current game state.
+    """
+    game_data = await GameData.init(state=state)
+    if callback.from_user != game_data.order_list[game_data.cur_order_user_index]:
+        await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
+        return
+
+    cur_user_index = game_data.next_turn()
+    await game_data.save()
+    if game_data.is_question:
+        answerer = get_asnwerer(game_data)
+        await callback.message.answer(
+            text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
+            reply_markup=complete_msg,
+        )
+        await callback.answer()
+    else:
+        await callback.message.answer(
+            text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} отвечает:",
+            reply_markup=complete_msg,
+        )
+        await callback.answer()
+
+
+def get_asnwerer(game_data: GameData) -> str:
+    """Retrieves the username or first name of the next player in the order list who will answer the question.
+
+    If the current player is not the last one in the order list, the next player is selected.
+    Otherwise, the first player in the list is chosen.
+
+    Parameters
+    ----------
+    game_data : GameData
+        The current game data containing the player order.
+
+    Returns:
+    -------
+    str
+        The username or first name of the player who will answer the question.
+    """
+    if game_data.cur_order_user_index != len(game_data.order_list) - 1:
+        answerer = get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index + 1])
+    else:
+        answerer = get_player_username_or_firstname(game_data.order_list[0])
+    return answerer
+
+
+@router.message()
+async def check_if_message_from_cur_turn_user(message: Message, state: FSMContext) -> None:
+    """Checks if the message is sent by the current player whose turn it is.
+
+    If the message is from a player who is not supposed to speak at this moment, and the
+    message does not start with '!', it will be deleted.
+
+    Parameters
+    ----------
+    message : Message
+        The message sent by a user in the chat.
+    state : FSMContext
+        The FSMContext storing the current game state.
+    """
+    game_data = await GameData.init(state=state)
+    if message.from_user != game_data.order_list[game_data.cur_order_user_index] and not message.text.startswith("!"):
+        await message.delete()

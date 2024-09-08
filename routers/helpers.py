@@ -18,6 +18,18 @@ def get_player_username_or_firstname(player: User) -> str:
 
 
 def get_str_players_list(players: set[User]) -> str:
+    """Function to get all usernames or first names from set of Users objects.
+
+    Parameters
+    ----------
+    players : set[User]
+        Set with users.
+
+    Returns:
+    -------
+    str
+        String with all usernames or first names of players from set.
+    """
     players_str = ""
     for player in players:
         player_str = get_player_username_or_firstname(player)

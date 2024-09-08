@@ -25,10 +25,25 @@ class GameData:
     spies: Set[User] = field(default_factory=set)
     order_list: list[User] = field(default_factory=list)
     cur_order_user_index: int = 0
+    is_question: bool = True
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":
-        """Asynchronous factory method to create and initialize GameData."""
+        """Initializes a new instance of the GameData class and refreshes its state.
+
+        This method creates a new GameData instance, setting its state to the provided FSMContext,
+        and then calls `refresh()` to ensure the object's data is up to date.
+
+        Parameters
+        ----------
+        state : FSMContext
+            The FSMContext used to track the current state of the game.
+
+        Returns:
+        -------
+        GameData
+            A new instance of GameData with its state initialized and refreshed.
+        """
         instance = cls(state=state)
         await instance.refresh()
         return instance
@@ -38,7 +53,18 @@ class GameData:
         await self.state.update_data(self.__dict__)
 
     def is_players_enough(self) -> bool:
-        """Returns True if the number of players is equal to or greater than the required minimum."""
+        """Checks if the current number of players is sufficient to start the game.
+
+        This method compares the number of players in the `self.players` list with the minimum
+        required player count defined in the `settings.minimal_player_count` setting.
+
+
+        Returns:
+        -------
+        bool
+            True if the number of players is greater than or equal to the minimum required,
+            False otherwise.
+        """
         return len(self.players) >= settings.minimal_player_count
 
     async def refresh(self) -> None:
@@ -47,3 +73,26 @@ class GameData:
         for key, value in data.items():
             if hasattr(self, key):
                 setattr(self, key, value)
+
+    def next_turn(self) -> int:
+        """Advances to the next player's turn, alternating between a question and non-question turn.
+
+        If the current turn involves a question (`self.is_question` is True), the player index
+        (`self.cur_order_user_index`) is advanced to the next player in the `order_list`. If the
+        current player is the last in the list, the index wraps around to the first player.
+
+        After updating the player index, the question turn flag (`self.is_question`) is toggled.
+
+
+        Returns:
+        -------
+        int
+            The updated index of the current player in the `order_list`.
+        """
+        if self.is_question:
+            if self.cur_order_user_index != len(self.order_list) - 1:
+                self.cur_order_user_index += 1
+            else:
+                self.cur_order_user_index = 0
+        self.is_question = not self.is_question
+        return self.cur_order_user_index
