@@ -1,13 +1,11 @@
-from random import choice, shuffle
-
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, User
+from aiogram.types import CallbackQuery, Message
 
-from core.settings import settings
-from routers.game_process.keyboards import complete_msg, my_role
+from routers.game_process.keyboards import my_role
+from routers.game_process.services import pass_turn, question_turn, setup_game_state
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_player_username_or_firstname, get_str_players_list
+from routers.helpers import get_str_players_list
 
 router = Router(name="game_process")
 
@@ -31,65 +29,14 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
 
     """
     game_data = await GameData.init(state=state)
-    await game_data.state.set_state(GameStates.game)
-    game_data.spies = set_spies(game_data)
-    game_data.order_list = set_players_order(game_data)
-    await game_data.save()
+
+    await setup_game_state(game_data)
+
     await callback.message.answer(
         f"Участники:\n{get_str_players_list(game_data.players)}\nШпионов среди них: {len(game_data.spies)}",
         reply_markup=my_role,
     )
-    await callback.message.answer(
-        text=(
-            f"{get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index])} задает вопрос "
-            f"{get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index+1])}:"
-        ),
-        reply_markup=complete_msg,
-    )
-
-
-def set_players_order(game_data: GameData) -> list[User]:
-    """Shuffles and returns the list of players to define the turn order.
-
-    Parameters
-    ----------
-    game_data : GameData
-        The current game data containing the list of players.
-
-    Returns:
-    -------
-    list[User]
-        A shuffled list of players representing the order in which they will take turns.
-    """
-    order: list[User] = list(game_data.players)
-    shuffle(order)
-    return order
-
-
-def set_spies(game_data: GameData) -> set[User]:
-    """Randomly selects spies from the list of players.
-
-    The number of spies is determined by dividing the total number of players by the
-    minimal player count setting.
-
-    Parameters
-    ----------
-    game_data : GameData
-        The current game data containing the list of players.
-
-    Returns:
-    -------
-    set[User]
-        A set of users who have been selected as spies.
-    """
-    count_of_spies: int = len(game_data.players) // settings.minimal_player_count
-    players_list = list(game_data.players.copy())
-    spies = set()
-    for _ in range(count_of_spies):
-        spy = choice(players_list)
-        spies.add(spy)
-        players_list.remove(spy)
-    return spies
+    await question_turn(callback=callback, game_data=game_data)
 
 
 @router.callback_query(F.data == "my_role")
@@ -107,6 +54,7 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
         The current finite state machine context, used to manage game data.
     """
     game_data = await GameData.init(state=state)
+
     if callback.from_user in game_data.spies:
         await callback.answer(
             text=(
@@ -128,7 +76,7 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
 
 
 @router.callback_query(F.data == "finished")
-async def game_chat(callback: CallbackQuery, state: FSMContext) -> None:
+async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     """Handles the callback when a game turn is finished and proceeds to the next player's turn.
 
     This function checks whether the user who initiated the callback is the current player
@@ -144,48 +92,12 @@ async def game_chat(callback: CallbackQuery, state: FSMContext) -> None:
         The FSMContext storing the current game state.
     """
     game_data = await GameData.init(state=state)
+
     if callback.from_user != game_data.order_list[game_data.cur_order_user_index]:
         await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
         return
 
-    cur_user_index = game_data.next_turn()
-    await game_data.save()
-    if game_data.is_question:
-        answerer = get_asnwerer(game_data)
-        await callback.message.answer(
-            text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
-            reply_markup=complete_msg,
-        )
-        await callback.answer()
-    else:
-        await callback.message.answer(
-            text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} отвечает:",
-            reply_markup=complete_msg,
-        )
-        await callback.answer()
-
-
-def get_asnwerer(game_data: GameData) -> str:
-    """Retrieves the username or first name of the next player in the order list who will answer the question.
-
-    If the current player is not the last one in the order list, the next player is selected.
-    Otherwise, the first player in the list is chosen.
-
-    Parameters
-    ----------
-    game_data : GameData
-        The current game data containing the player order.
-
-    Returns:
-    -------
-    str
-        The username or first name of the player who will answer the question.
-    """
-    if game_data.cur_order_user_index != len(game_data.order_list) - 1:
-        answerer = get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index + 1])
-    else:
-        answerer = get_player_username_or_firstname(game_data.order_list[0])
-    return answerer
+    await pass_turn(callback, game_data)
 
 
 @router.message()
@@ -203,5 +115,6 @@ async def check_if_message_from_cur_turn_user(message: Message, state: FSMContex
         The FSMContext storing the current game state.
     """
     game_data = await GameData.init(state=state)
+
     if message.from_user != game_data.order_list[game_data.cur_order_user_index] and not message.text.startswith("!"):
         await message.delete()
