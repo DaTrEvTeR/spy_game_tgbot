@@ -18,6 +18,18 @@ class GameStates(StatesGroup):
 
 @dataclass
 class GameData:
+    """Class that represents all game data.
+
+    Usage
+    -------
+    To create a GameData object with data from the current state, use the class method `init`:
+        game_data = await GameData.init(state=state)
+    To update the data, use the object method `refresh`:
+        await game_data.refresh()
+    To save data from the object to the state, use the `save` method:
+        await game_data.save()
+    """
+
     state: FSMContext
 
     players: Set[User] = field(default_factory=set)
