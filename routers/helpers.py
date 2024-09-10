@@ -1,20 +1,23 @@
 from aiogram.types import User
 
 
-def get_player_username_or_firstname(player: User) -> str:
-    """Function to get username or first name from User object.
+def get_user_mention(player: User) -> str:
+    """Generates a clickable mention of a Telegram user, which links to their profile.
 
     Parameters
     ----------
     player : User
-        User object of player, which needed to get username|first_name
+        An instance of the `User` class representing a Telegram user.
 
     Returns:
     -------
     str
-        Returns a representation of the user as "@username" if the username is available, or "first_name" otherwise.
+        An HTML string that formats the user's first name as a clickable hyperlink.
     """
-    return f"@{player.username}" if player.username else player.first_name
+    user_id = player.id
+    first_name = player.first_name
+
+    return f'<a href="tg://user?id={user_id}">{first_name}</a>'
 
 
 def get_str_players_list(players: set[User]) -> str:
@@ -32,6 +35,6 @@ def get_str_players_list(players: set[User]) -> str:
     """
     players_str = ""
     for player in players:
-        player_str = get_player_username_or_firstname(player)
+        player_str = get_user_mention(player)
         players_str += f"{player_str}, "
     return players_str

@@ -4,7 +4,7 @@ from aiogram.types import User
 
 from core.settings import settings
 from routers.game_states import GameData
-from routers.helpers import get_player_username_or_firstname
+from routers.helpers import get_user_mention
 
 
 def get_asnwerer(game_data: GameData) -> str:
@@ -24,9 +24,9 @@ def get_asnwerer(game_data: GameData) -> str:
         The username or first name of the player who will answer the question.
     """
     if game_data.cur_order_user_index != len(game_data.order_list) - 1:
-        answerer = get_player_username_or_firstname(game_data.order_list[game_data.cur_order_user_index + 1])
+        answerer = get_user_mention(game_data.order_list[game_data.cur_order_user_index + 1])
     else:
-        answerer = get_player_username_or_firstname(game_data.order_list[0])
+        answerer = get_user_mention(game_data.order_list[0])
     return answerer
 
 

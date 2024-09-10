@@ -3,7 +3,7 @@ from aiogram.types import CallbackQuery
 from routers.game_process.helpers import get_asnwerer, set_players_order, set_spies
 from routers.game_process.keyboards import complete_msg
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_player_username_or_firstname
+from routers.helpers import get_user_mention
 
 
 async def answer_turn(callback: CallbackQuery, game_data: GameData) -> None:
@@ -18,7 +18,7 @@ async def answer_turn(callback: CallbackQuery, game_data: GameData) -> None:
     """
     cur_user_index = game_data.cur_order_user_index
     await callback.message.answer(
-        text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} отвечает:",
+        text=f"{get_user_mention(game_data.order_list[cur_user_index])} отвечает:",
         reply_markup=complete_msg,
     )
     await callback.answer()
@@ -37,7 +37,7 @@ async def question_turn(callback: CallbackQuery, game_data: GameData) -> None:
     cur_user_index = game_data.cur_order_user_index
     answerer = get_asnwerer(game_data)
     await callback.message.answer(
-        text=f"{get_player_username_or_firstname(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
+        text=f"{get_user_mention(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
         reply_markup=complete_msg,
     )
     await callback.answer()
