@@ -1,5 +1,8 @@
-from aiogram.types import CallbackQuery
+from random import randint
 
+from aiogram.types import CallbackQuery, Message, Update
+
+from core.config import bot, dp
 from routers.game_process.helpers import get_asnwerer, set_players_order, set_spies
 from routers.game_process.keyboards import complete_msg
 from routers.game_states import GameData, GameStates
@@ -40,7 +43,6 @@ async def question_turn(callback: CallbackQuery, game_data: GameData) -> None:
         text=f"{get_user_mention(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
         reply_markup=complete_msg,
     )
-    await callback.answer()
 
 
 async def pass_turn(callback: CallbackQuery, game_data: GameData) -> None:
@@ -77,3 +79,17 @@ async def setup_game_state(game_data: GameData) -> None:
     game_data.spies = set_spies(game_data)
     game_data.order_list = set_players_order(game_data)
     await game_data.save()
+
+
+async def start_vote(message: Message) -> None:
+    callback_query = CallbackQuery(
+        id="manual",
+        from_user=message.from_user,
+        chat_instance=str(message.chat.id),
+        message=message,
+        data="start_vote",
+    )
+
+    update = Update(update_id=randint(1, 9999), callback_query=callback_query)
+
+    await dp.feed_update(bot=bot, update=update)

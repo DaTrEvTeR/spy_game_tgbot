@@ -38,6 +38,7 @@ class GameData:
     order_list: list[User] = field(default_factory=list)
     cur_order_user_index: int = 0
     is_question: bool = True
+    ready_to_vote: set[User] = field(default_factory=set)
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":

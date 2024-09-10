@@ -1,9 +1,10 @@
 from aiogram import F, Router
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
-from routers.game_process.services import pass_turn, question_turn, setup_game_state
+from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_vote
 from routers.game_states import GameData, GameStates
 from routers.helpers import get_str_players_list
 
@@ -100,12 +101,27 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     await pass_turn(callback, game_data)
 
 
-@router.message()
+@router.message(Command("vote"))
+async def ready_to_vote(message: Message, state: FSMContext) -> None:
+    game_data = await GameData.init(state=state)
+
+    user = message.from_user
+    if user not in game_data.order_list:
+        await message.delete()
+        return
+
+    game_data.ready_to_vote.add(user)
+    await message.delete()
+    if len(game_data.ready_to_vote) > len(game_data.order_list) / 2:
+        await start_vote(message)
+
+
+@router.message(F.text[0] != "/")
 async def check_if_message_from_cur_turn_user(message: Message, state: FSMContext) -> None:
     """Checks if the message is sent by the current player whose turn it is.
 
     If the message is from a player who is not supposed to speak at this moment, and the
-    message does not start with '!', it will be deleted.
+    message does not start with '/', it will be deleted.
 
     Parameters
     ----------
@@ -116,5 +132,5 @@ async def check_if_message_from_cur_turn_user(message: Message, state: FSMContex
     """
     game_data = await GameData.init(state=state)
 
-    if message.from_user != game_data.order_list[game_data.cur_order_user_index] and not message.text.startswith("!"):
+    if message.from_user != game_data.order_list[game_data.cur_order_user_index]:
         await message.delete()
