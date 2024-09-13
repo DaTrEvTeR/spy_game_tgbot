@@ -23,7 +23,7 @@ async def check_null_state(message: Message, game_data: GameData) -> bool:
     """
     cur_state = await game_data.state.get_state()
 
-    if cur_state == GameStates.game.state:
+    if cur_state in (GameStates.game.state, GameStates.vote.state):
         await message.answer("Игра уже идет!", disable_notification=True)
         return False
 

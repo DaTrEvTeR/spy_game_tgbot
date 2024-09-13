@@ -7,6 +7,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import User
 
 from core.settings import settings
+from routers.helpers import get_str_players_list
 
 
 class GameStates(StatesGroup):
@@ -14,6 +15,7 @@ class GameStates(StatesGroup):
 
     registration = State()
     game = State()
+    vote = State()
 
 
 @dataclass
@@ -39,6 +41,9 @@ class GameData:
     cur_order_user_index: int = 0
     is_question: bool = True
     ready_to_vote: set[User] = field(default_factory=set)
+    vote_task: Optional[Task] = None
+    voted_players: set[User] = field(default_factory=set)
+    votes: dict[str, int] = field(default_factory=dict)
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":
@@ -60,6 +65,10 @@ class GameData:
         instance = cls(state=state)
         await instance.refresh()
         return instance
+
+    @property
+    def count_workers_and_spies(self) -> str:
+        return f"Участники:\n{get_str_players_list(self.players)}\nШпионов среди них: {len(self.spies)}"
 
     async def save(self) -> None:
         """Saves the current state of the object back to the FSM state."""

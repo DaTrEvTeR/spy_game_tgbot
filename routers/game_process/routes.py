@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, Message
 from routers.game_process.keyboards import my_role
 from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_vote
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_str_players_list
 
 router = Router(name="game_process")
 
@@ -34,7 +33,7 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
     await setup_game_state(game_data)
 
     await callback.message.answer(
-        f"Участники:\n{get_str_players_list(game_data.players)}\nШпионов среди них: {len(game_data.spies)}",
+        text=game_data.count_workers_and_spies,
         reply_markup=my_role,
     )
     await question_turn(callback=callback, game_data=game_data)

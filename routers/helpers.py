@@ -36,5 +36,5 @@ def get_str_players_list(players: set[User]) -> str:
     players_str = ""
     for player in players:
         player_str = get_user_mention(player)
-        players_str += f"{player_str}, "
+        players_str += f"{player_str} "
     return players_str
