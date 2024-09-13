@@ -81,12 +81,7 @@ pre-commit-autoupdate:
 .PHONY: poetry-up-latest
 # Update all packages to the latest version allowed by the current constraints.
 poetry-up-latest:
-	@poetry up --latest
-
-.PHONY: poetry-up-pinned-latest-no-install
-# Update all packages to the latest version allowed by the current constraints.
-poetry-up-pinned-latest-no-install:
-	@poetry up --pinned --latest --no-install
+	@poetry update
 
 .PHONY: poetry-lock
 # Lock the current dependencies.
