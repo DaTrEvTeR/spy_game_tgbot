@@ -5,8 +5,7 @@ from aiogram.types import CallbackQuery, Message, Update, User
 
 from core.config import bot, dp
 from core.settings import settings
-from routers.game_states import GameData, GameStates
-from routers.helpers import get_str_players_from_set
+from routers.helpers import GameData, GameStates, get_str_players_from_set
 from routers.reg_process.keyboards import reg
 
 

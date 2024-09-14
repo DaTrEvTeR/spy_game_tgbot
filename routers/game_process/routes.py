@@ -5,8 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
 from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_reveal, start_vote
-from routers.game_states import GameData, GameStates
-from routers.helpers import get_key, get_user_mention
+from routers.helpers import GameData, GameStates, get_key, get_user_mention
 
 router = Router(name="game_process")
 

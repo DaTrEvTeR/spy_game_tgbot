@@ -2,7 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 
-from routers.game_states import GameData, GameStates
+from routers.helpers import GameData, GameStates
 from routers.vote_process.services import process_vote, process_vote_results, run_wait_task, send_voting_message
 
 router = Router(name="vote_process")
@@ -11,7 +11,7 @@ router.message.filter(F.chat.type.in_({"group", "supergroup"}), GameStates.vote)
 
 
 @router.callback_query(F.data == "start_vote")
-async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
+async def init_vote(callback: CallbackQuery, state: FSMContext) -> None:
     """Initializes the voting process by setting the game state to voting,
     sending the voting message, and starting the wait task.
 

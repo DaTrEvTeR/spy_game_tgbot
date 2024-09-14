@@ -5,8 +5,7 @@ from aiogram.types import CallbackQuery, Message, Update
 from core.config import bot, dp
 from routers.game_process.helpers import get_asnwerer, set_players_order, set_spies
 from routers.game_process.keyboards import complete_msg
-from routers.game_states import GameData, GameStates
-from routers.helpers import get_user_mention
+from routers.helpers import GameData, GameStates, get_user_mention
 
 
 async def answer_turn(callback: CallbackQuery, game_data: GameData) -> None:

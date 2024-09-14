@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
-from routers.game_states import GameData
+from routers.helpers import GameData
 from routers.reg_process.services import (
     check_null_state,
     game_cancel,

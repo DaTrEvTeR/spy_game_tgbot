@@ -7,7 +7,8 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import User
 
 from core.settings import settings
-from routers.helpers import get_str_players_list
+
+from .get_str_players_list import get_str_players_list
 
 
 class GameStates(StatesGroup):

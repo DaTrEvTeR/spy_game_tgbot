@@ -3,8 +3,7 @@ from random import choice, shuffle
 from aiogram.types import User
 
 from core.settings import settings
-from routers.game_states import GameData
-from routers.helpers import get_user_mention
+from routers.helpers import GameData, get_user_mention
 
 
 def get_asnwerer(game_data: GameData) -> str:

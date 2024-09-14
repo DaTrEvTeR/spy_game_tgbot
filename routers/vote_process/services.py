@@ -3,9 +3,8 @@ import asyncio
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
-from routers.game_states import GameData
+from routers.helpers import GameData, process_remaining_players
 from routers.vote_process.helpers import (
-    process_remaining_players,
     process_votes,
     register_vote,
     send_confirmation_notification,
