@@ -37,8 +37,8 @@ class GameData:
     players: Set[User] = field(default_factory=set)
     registration_task: Optional[Task] = None
     spies: Set[User] = field(default_factory=set)
-    order_list: list[User] = field(default_factory=list)
-    cur_order_user_index: int = 0
+    order_dict: dict[int, User] = field(default_factory=dict)
+    cur_order_num: int = 1
     is_question: bool = True
     ready_to_vote: set[User] = field(default_factory=set)
     vote_task: Optional[Task] = None
@@ -68,7 +68,7 @@ class GameData:
 
     @property
     def count_workers_and_spies(self) -> str:
-        return f"Участники:\n{get_str_players_list(self.players)}\nШпионов среди них: {len(self.spies)}"
+        return f"Работники:\n{get_str_players_list(self.order_dict)}\nШпионов среди них: {len(self.spies)}"
 
     async def save(self) -> None:
         """Saves the current state of the object back to the FSM state."""
@@ -112,9 +112,9 @@ class GameData:
             The updated index of the current player in the `order_list`.
         """
         if self.is_question:
-            if self.cur_order_user_index != len(self.order_list) - 1:
-                self.cur_order_user_index += 1
+            if self.cur_order_num != len(self.order_dict):
+                self.cur_order_num += 1
             else:
-                self.cur_order_user_index = 0
+                self.cur_order_num = 1
         self.is_question = not self.is_question
-        return self.cur_order_user_index
+        return self.cur_order_num

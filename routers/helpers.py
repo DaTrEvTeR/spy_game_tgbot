@@ -20,7 +20,27 @@ def get_user_mention(player: User) -> str:
     return f'<a href="tg://user?id={user_id}">{first_name}</a>'
 
 
-def get_str_players_list(players: set[User]) -> str:
+def get_str_players_list(players: dict[int, User]) -> str:
+    """Function to get all usernames or first names with order nums from dict of Users objects.
+
+    Parameters
+    ----------
+    players : dict[User]
+        Set with users.
+
+    Returns:
+    -------
+    str
+        String with all usernames or first names of players from set.
+    """
+    players_str = ""
+    for num, player in players.items():
+        player_str = get_user_mention(player)
+        players_str += f"{num}. {player_str}\n"
+    return players_str
+
+
+def get_str_players_from_set(players: set[User]) -> str:
     """Function to get all usernames or first names from set of Users objects.
 
     Parameters
@@ -36,5 +56,5 @@ def get_str_players_list(players: set[User]) -> str:
     players_str = ""
     for player in players:
         player_str = get_user_mention(player)
-        players_str += f"{player_str} "
+        players_str += f"{player_str}\n"
     return players_str

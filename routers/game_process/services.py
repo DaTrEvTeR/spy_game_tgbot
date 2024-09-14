@@ -19,9 +19,8 @@ async def answer_turn(callback: CallbackQuery, game_data: GameData) -> None:
     game_data : GameData
         GameData object with current game state data.
     """
-    cur_user_index = game_data.cur_order_user_index
     await callback.message.answer(
-        text=f"{get_user_mention(game_data.order_list[cur_user_index])} отвечает:",
+        text=f"{game_data.cur_order_num}. {get_user_mention(game_data.order_dict[game_data.cur_order_num])} отвечает:",
         reply_markup=complete_msg,
     )
     await callback.answer()
@@ -37,10 +36,13 @@ async def question_turn(callback: CallbackQuery, game_data: GameData) -> None:
     game_data : GameData
         GameData object with current game state data.
     """
-    cur_user_index = game_data.cur_order_user_index
-    answerer = get_asnwerer(game_data)
+    get_asnwerer(game_data)
+    msg = (
+        f"{game_data.cur_order_num}. {get_user_mention(game_data.order_dict[game_data.cur_order_num])} "
+        "задает вопрос {answerer}:"
+    )
     await callback.message.answer(
-        text=f"{get_user_mention(game_data.order_list[cur_user_index])} задает вопрос {answerer}:",
+        text=msg,
         reply_markup=complete_msg,
     )
 
@@ -77,7 +79,7 @@ async def setup_game_state(game_data: GameData) -> None:
     """
     await game_data.state.set_state(GameStates.game)
     game_data.spies = set_spies(game_data)
-    game_data.order_list = set_players_order(game_data)
+    game_data.order_dict = set_players_order(game_data)
     await game_data.save()
 
 

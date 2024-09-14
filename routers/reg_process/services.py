@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message, Update, User
 from core.config import bot, dp
 from core.settings import settings
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_str_players_list
+from routers.helpers import get_str_players_from_set
 from routers.reg_process.keyboards import reg
 
 
@@ -180,7 +180,7 @@ async def update_reg_msg(reg_msg: Message, players: set[User]) -> None:
         Each `User` object must have a `username` attribute to be displayed in the message.
     """
     if len(players) >= 1:
-        players_str = get_str_players_list(players)
+        players_str = get_str_players_from_set(players)
         await reg_msg.edit_text(
             text=f"{settings.start_registration_msg}\n\nУже присоединилось {len(players)} человек:\n{players_str}",
             reply_markup=reg,

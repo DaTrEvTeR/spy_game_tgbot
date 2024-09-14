@@ -19,7 +19,7 @@ def users(game_data: GameData) -> InlineKeyboardMarkup:
     """
     keyboard_builder = InlineKeyboardBuilder()
 
-    for player in game_data.players:
-        keyboard_builder.add(InlineKeyboardButton(text=player.first_name, callback_data=str(player.id)))
+    for num, player in game_data.order_dict.items():
+        keyboard_builder.add(InlineKeyboardButton(text=f"{num}. {player.first_name}", callback_data=str(num)))
 
     return keyboard_builder.adjust(1).as_markup()

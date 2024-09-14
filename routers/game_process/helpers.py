@@ -23,14 +23,16 @@ def get_asnwerer(game_data: GameData) -> str:
     str
         The username or first name of the player who will answer the question.
     """
-    if game_data.cur_order_user_index != len(game_data.order_list) - 1:
-        answerer = get_user_mention(game_data.order_list[game_data.cur_order_user_index + 1])
+    if game_data.cur_order_num != len(game_data.order_dict):
+        answerer = get_user_mention(game_data.order_dict[game_data.cur_order_num + 1])
+        num = game_data.cur_order_num + 1
     else:
-        answerer = get_user_mention(game_data.order_list[0])
-    return answerer
+        answerer = get_user_mention(game_data.order_dict[1])
+        num = 1
+    return f"{num}. {answerer}"
 
 
-def set_players_order(game_data: GameData) -> list[User]:
+def set_players_order(game_data: GameData) -> dict[int, User]:
     """Shuffles and returns the list of players to define the turn order.
 
     Parameters
@@ -45,7 +47,7 @@ def set_players_order(game_data: GameData) -> list[User]:
     """
     order: list[User] = list(game_data.players)
     shuffle(order)
-    return order
+    return dict(list(enumerate(order, 1)))
 
 
 def set_spies(game_data: GameData) -> set[User]:

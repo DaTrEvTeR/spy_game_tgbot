@@ -93,7 +93,7 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     """
     game_data = await GameData.init(state=state)
 
-    if callback.from_user != game_data.order_list[game_data.cur_order_user_index]:
+    if callback.from_user != game_data.order_dict[game_data.cur_order_num]:
         await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
         return
 
@@ -105,13 +105,13 @@ async def ready_to_vote(message: Message, state: FSMContext) -> None:
     game_data = await GameData.init(state=state)
 
     user = message.from_user
-    if user not in game_data.order_list:
+    if user not in game_data.order_dict.values():
         await message.delete()
         return
 
     game_data.ready_to_vote.add(user)
     await message.delete()
-    if len(game_data.ready_to_vote) > len(game_data.order_list) / 2:
+    if len(game_data.ready_to_vote) > len(game_data.order_dict) / 2:
         await start_vote(message)
 
 
@@ -131,5 +131,5 @@ async def check_if_message_from_cur_turn_user(message: Message, state: FSMContex
     """
     game_data = await GameData.init(state=state)
 
-    if message.from_user != game_data.order_list[game_data.cur_order_user_index]:
+    if message.from_user != game_data.order_dict[game_data.cur_order_num]:
         await message.delete()

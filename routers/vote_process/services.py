@@ -3,11 +3,10 @@ import asyncio
 from aiogram.types import CallbackQuery, Message
 
 from core.settings import settings
-from routers.game_states import GameData, GameStates
-from routers.helpers import get_user_mention
+from routers.game_states import GameData
 from routers.vote_process.helpers import (
-    get_key,
-    get_user_by_id,
+    process_remaining_players,
+    process_votes,
     register_vote,
     send_confirmation_notification,
     show_results,
@@ -66,7 +65,7 @@ async def process_vote(callback: CallbackQuery, game_data: GameData) -> None:
     """
     player = callback.from_user
 
-    if player not in game_data.order_list:
+    if player not in game_data.order_dict.values():
         await callback.answer("Вы не в игре.")
         return
 
@@ -75,9 +74,9 @@ async def process_vote(callback: CallbackQuery, game_data: GameData) -> None:
         return
 
     await register_vote(callback=callback, game_data=game_data)
-    await send_confirmation_notification(callback=callback)
+    await send_confirmation_notification(callback=callback, game_data=game_data)
 
-    if len(game_data.voted_players) == len(game_data.order_list):
+    if len(game_data.voted_players) == len(game_data.order_dict):
         game_data.vote_task.cancel()  # type: ignore
 
 
@@ -93,40 +92,5 @@ async def process_vote_results(vote_msg: Message, game_data: GameData) -> None:
     """
     await vote_msg.edit_text(text="Голосование завершено")
     await show_results(vote_msg, game_data)
-
-    if game_data.votes:
-        max_vote_count = max(set(game_data.votes.values()))
-        if max_vote_count > len(game_data.order_list) / 2:
-            player_for_kick_id = get_key(votes=game_data.votes, count=max_vote_count)
-            player_for_kick = await get_user_by_id(chat_id=vote_msg.chat.id, user_id=int(player_for_kick_id))
-            response_message = f"Большинство игроков считает, что шпионом является {get_user_mention(player_for_kick)}"
-            await vote_msg.answer(text=response_message)
-
-            game_data.order_list.remove(player_for_kick)
-            if player_for_kick in game_data.spies:
-                response_message = f"{get_user_mention(player_for_kick)} был шпионом!"
-                game_data.spies.remove(player_for_kick)
-            else:
-                response_message = f"{get_user_mention(player_for_kick)} был работником!"
-
-            await vote_msg.answer(text=response_message)
-        else:
-            await vote_msg.answer(text="Мнения игроков сильно разошлись - никто не будет выгнан")
-    else:
-        await vote_msg.answer(text="Все игроки решили воздержаться")
-
-    if len(game_data.spies) == 0:
-        await game_data.state.clear()
-        await vote_msg.answer(text="Работники выиграли!")
-    elif len(game_data.order_list) - len(game_data.spies) <= len(game_data.spies):
-        await game_data.state.clear()
-        spies_message = ""
-        for spy in game_data.spies:
-            spies_message += f"{get_user_mention(spy)} "
-        response_message = f"Работники проиграли!\nШпионами были: {spies_message}"
-        await vote_msg.answer(text=response_message)
-    else:
-        await game_data.state.set_state(GameStates.game)
-        await game_data.save()
-        response_message = f"Продолжаем игру!\n\n{game_data.count_workers_and_spies}"
-        await vote_msg.answer(text=response_message)
+    await process_votes(vote_msg, game_data)
+    await process_remaining_players(vote_msg, game_data)
