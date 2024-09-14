@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from aiogram.types import User
 
 
@@ -58,3 +60,11 @@ def get_str_players_from_set(players: set[User]) -> str:
         player_str = get_user_mention(player)
         players_str += f"{player_str}\n"
     return players_str
+
+
+def get_key(dictionary: Dict, value: Any) -> Any:  #  noqa: ANN401
+    """Finds the player key with the specified value."""
+    for player_id, votes_count in dictionary.items():
+        if votes_count == value:
+            return player_id
+    return None

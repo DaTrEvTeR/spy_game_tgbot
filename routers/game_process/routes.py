@@ -4,8 +4,9 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
-from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_vote
+from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_reveal, start_vote
 from routers.game_states import GameData, GameStates
+from routers.helpers import get_key, get_user_mention
 
 router = Router(name="game_process")
 
@@ -110,9 +111,40 @@ async def ready_to_vote(message: Message, state: FSMContext) -> None:
         return
 
     game_data.ready_to_vote.add(user)
+    await message.answer(text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} готов голосовать")
     await message.delete()
     if len(game_data.ready_to_vote) > len(game_data.order_dict) / 2:
         await start_vote(message)
+
+
+@router.message(Command("reveal"))
+async def ready_to_reveal(message: Message, state: FSMContext) -> None:
+    """Handles the command to reveal a player's role and starts the reveal process.
+
+    This function is triggered when a player sends the "/reveal" command. It checks if the user is
+    part of the game, and if so, it sends a message announcing that the player has decided to reveal
+    their role. It then starts the reveal process by calling `start_reveal`.
+
+    Parameters
+    ----------
+    message : Message
+        The message object representing the player's "/reveal" command.
+
+    state : FSMContext
+        The current FSM (finite state machine) context of the game.
+    """
+    game_data = await GameData.init(state=state)
+
+    user = message.from_user
+    if user not in game_data.order_dict.values():
+        await message.delete()
+        return
+
+    await message.answer(
+        text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} решил раскрыть свою роль"
+    )
+    await message.delete()
+    await start_reveal(message)
 
 
 @router.message(F.text[0] != "/")

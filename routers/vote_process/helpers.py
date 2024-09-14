@@ -1,9 +1,7 @@
-from typing import Any, Dict
-
 from aiogram.types import CallbackQuery, Message
 
 from routers.game_states import GameData, GameStates
-from routers.helpers import get_user_mention
+from routers.helpers import get_key, get_user_mention
 
 
 async def register_vote(callback: CallbackQuery, game_data: GameData) -> None:
@@ -62,14 +60,6 @@ async def show_results(vote_msg: Message, game_data: GameData) -> None:
         await vote_msg.answer(f"Результаты голосования:\n{vote_results}")
     else:
         await vote_msg.answer("Никто не выбрал кандидата в шпионы")
-
-
-def get_key(dictionary: Dict, value: Any) -> Any:  #  noqa: ANN401
-    """Finds the player key with the specified value."""
-    for player_id, votes_count in dictionary.items():
-        if votes_count == value:
-            return player_id
-    return None
 
 
 async def process_votes(vote_msg: Message, game_data: GameData) -> None:

@@ -16,6 +16,7 @@ class GameStates(StatesGroup):
     registration = State()
     game = State()
     vote = State()
+    reveal = State()
 
 
 @dataclass
