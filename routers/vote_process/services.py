@@ -92,4 +92,5 @@ async def process_vote_results(vote_msg: Message, game_data: GameData) -> None:
     await vote_msg.edit_text(text="Голосование завершено")
     await show_results(vote_msg, game_data)
     await process_votes(vote_msg, game_data)
+    game_data.ready_to_vote = set()
     await process_remaining_players(vote_msg, game_data)
