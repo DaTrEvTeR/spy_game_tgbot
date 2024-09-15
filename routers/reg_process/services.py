@@ -1,11 +1,9 @@
 import asyncio
-from random import randint
 
-from aiogram.types import CallbackQuery, Message, Update, User
+from aiogram.types import CallbackQuery, Message, User
 
-from core.config import bot, dp
 from core.settings import settings
-from routers.helpers import GameData, GameStates, get_str_players_from_set
+from routers.helpers import GameData, GameStates, feed_callback, get_str_players_from_set
 from routers.reg_process.keyboards import reg
 
 
@@ -88,17 +86,7 @@ async def start_game(reg_message: Message) -> None:
     """
     await reg_message.edit_text(text="Набрано нужное количество игроков. Игра начинается.", reply_markup=None)
 
-    callback_query = CallbackQuery(
-        id="manual",
-        from_user=reg_message.from_user,
-        chat_instance=str(reg_message.chat.id),
-        message=reg_message,
-        data="init_game",
-    )
-
-    update = Update(update_id=randint(1, 9999), callback_query=callback_query)
-
-    await dp.feed_update(bot=bot, update=update)
+    await feed_callback(reg_message, "init_game")
 
 
 async def game_cancel(reg_message: Message, game_data: GameData) -> None:

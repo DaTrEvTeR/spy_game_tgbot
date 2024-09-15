@@ -1,5 +1,6 @@
 from aiogram.types import Message
 
+from .feed_callback import feed_callback
 from .game_states import GameData, GameStates
 from .get_user_mention import get_user_mention
 
@@ -35,6 +36,9 @@ async def process_remaining_players(message: Message, game_data: GameData) -> No
         await message.answer(text=response_message)
     else:
         await game_data.state.set_state(GameStates.game)
+        game_data.cur_order_num = min(game_data.order_dict)
+        game_data.is_question = False
         await game_data.save()
         response_message = f"Продолжаем игру!\n\n{game_data.count_workers_and_spies}"
         await message.answer(text=response_message)
+        await feed_callback(message, "finished")

@@ -4,8 +4,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
-from routers.game_process.services import pass_turn, question_turn, setup_game_state, start_reveal, start_vote
-from routers.helpers import GameData, GameStates, get_key, get_user_mention
+from routers.game_process.services import pass_turn, question_turn, setup_game_state
+from routers.helpers import GameData, GameStates, feed_callback, get_bot_id, get_key, get_user_mention
 
 router = Router(name="game_process")
 
@@ -93,7 +93,10 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     """
     game_data = await GameData.init(state=state)
 
-    if callback.from_user != game_data.order_dict[game_data.cur_order_num]:
+    if (
+        callback.from_user != game_data.order_dict[game_data.cur_order_num]
+        and callback.from_user.id != await get_bot_id()
+    ):
         await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
         return
 
@@ -113,7 +116,7 @@ async def ready_to_vote(message: Message, state: FSMContext) -> None:
     await message.answer(text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} готов голосовать")
     await message.delete()
     if len(game_data.ready_to_vote) > len(game_data.order_dict) / 2:
-        await start_vote(message)
+        await feed_callback(message, "start_vote")
 
 
 @router.message(Command("reveal"))
@@ -143,7 +146,7 @@ async def ready_to_reveal(message: Message, state: FSMContext) -> None:
         text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} решил раскрыть свою роль"
     )
     await message.delete()
-    await start_reveal(message)
+    await feed_callback(message, "reveal_role")
 
 
 @router.message(F.text[0] != "/")

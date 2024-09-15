@@ -93,4 +93,6 @@ async def process_vote_results(vote_msg: Message, game_data: GameData) -> None:
     await show_results(vote_msg, game_data)
     await process_votes(vote_msg, game_data)
     game_data.ready_to_vote = set()
+    game_data.voted_players = set()
+    game_data.votes = {}
     await process_remaining_players(vote_msg, game_data)

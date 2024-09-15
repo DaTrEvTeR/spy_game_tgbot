@@ -1,8 +1,5 @@
-from random import randint
+from aiogram.types import CallbackQuery
 
-from aiogram.types import CallbackQuery, Message, Update
-
-from core.config import bot, dp
 from routers.game_process.helpers import get_asnwerer, set_players_order, set_spies
 from routers.game_process.keyboards import complete_msg
 from routers.helpers import GameData, GameStates, get_user_mention
@@ -80,53 +77,3 @@ async def setup_game_state(game_data: GameData) -> None:
     game_data.spies = set_spies(game_data)
     game_data.order_dict = set_players_order(game_data)
     await game_data.save()
-
-
-async def start_vote(message: Message) -> None:
-    """Manually triggers the start of the voting process by simulating a callback query.
-
-    This function creates a `CallbackQuery` object with the data `"start_vote"` and manually feeds
-    this update to the bot. This simulates the start of the voting process, as if a player had pressed
-    a button to begin voting.
-
-    Parameters
-    ----------
-    message : Message
-        The message object representing the user's message that triggers the vote.
-    """
-    callback_query = CallbackQuery(
-        id="manual",
-        from_user=message.from_user,
-        chat_instance=str(message.chat.id),
-        message=message,
-        data="start_vote",
-    )
-
-    update = Update(update_id=randint(1, 9999), callback_query=callback_query)
-
-    await dp.feed_update(bot=bot, update=update)
-
-
-async def start_reveal(message: Message) -> None:
-    """Manually triggers the reveal of a player's role by simulating a callback query.
-
-    This function creates a `CallbackQuery` object with the data `"reveal_role"` and manually feeds
-    this update to the bot. This simulates the reveal process, as if a player had pressed a button to
-    reveal their role in the game.
-
-    Parameters
-    ----------
-    message : Message
-        The message object representing the player's request to reveal their role.
-    """
-    callback_query = CallbackQuery(
-        id="manual",
-        from_user=message.from_user,
-        chat_instance=str(message.chat.id),
-        message=message,
-        data="reveal_role",
-    )
-
-    update = Update(update_id=randint(1, 9999), callback_query=callback_query)
-
-    await dp.feed_update(bot=bot, update=update)
