@@ -35,10 +35,10 @@ async def question_turn(callback: CallbackQuery, game_data: GameData) -> None:
     game_data : GameData
         GameData object with current game state data.
     """
-    get_asnwerer(game_data)
+    answerer = get_asnwerer(game_data)
     msg = (
         f"{game_data.cur_order_num}. {get_user_mention(game_data.order_dict[game_data.cur_order_num])} "
-        "задает вопрос {answerer}:"
+        f"задает вопрос {answerer}:"
     )
     await callback.message.answer(
         text=msg,
