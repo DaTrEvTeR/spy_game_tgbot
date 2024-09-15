@@ -114,9 +114,34 @@ class GameData:
             The updated index of the current player in the `order_list`.
         """
         if self.is_question:
-            if self.cur_order_num != len(self.order_dict):
-                self.cur_order_num += 1
+            if self.cur_order_num != max(self.order_dict):
+                self.cur_order_num = self.find_next()
             else:
-                self.cur_order_num = 1
+                self.cur_order_num = min(self.order_dict)
         self.is_question = not self.is_question
         return self.cur_order_num
+
+    def find_next(self) -> int:
+        """Find the next key in the `order_dict` based on the current order number.
+
+        This function returns the next key in `self.order_dict` after `self.cur_order_num`.
+        If `self.cur_order_num` is the highest key in the dictionary, the smallest key
+        is returned. If `self.cur_order_num` is not found in `self.order_dict`, the function
+        returns 0.
+
+        Returns:
+        -------
+        int
+            The next key after `self.cur_order_num` in `self.order_dict`, or the smallest
+            key in `self.order_dict` if `self.cur_order_num` is the largest. Returns `None`
+            if `self.cur_order_num` is not found in `self.order_dict`.
+        """
+        if self.cur_order_num < max(self.order_dict):
+            is_cur = False
+            for i in self.order_dict:
+                if is_cur:
+                    return i
+                if i == self.cur_order_num:
+                    is_cur = True
+            return 0
+        return min(self.order_dict)
