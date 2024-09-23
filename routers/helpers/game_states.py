@@ -1,5 +1,6 @@
 from asyncio import Task
 from dataclasses import dataclass, field
+from random import choice
 from typing import Optional, Set
 
 from aiogram.fsm.context import FSMContext
@@ -46,7 +47,8 @@ class GameData:
     vote_task: Optional[Task] = None
     voted_players: set[User] = field(default_factory=set)
     votes: dict[str, int] = field(default_factory=dict)
-    # possible_locations:
+    possible_locations: dict = field(default_factory=dict)
+    game_loc: str = field(default_factory=str)
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":
@@ -60,7 +62,9 @@ class GameData:
         state : FSMContext
             The FSMContext used to track the current state of the game.
 
-        Returns:
+        Returns:    def set_location(self):
+        """ """
+        ...
         -------
         GameData
             A new instance of GameData with its state initialized and refreshed.
@@ -146,3 +150,16 @@ class GameData:
                     is_cur = True
             return 0
         return min(self.order_dict)
+
+    def set_loc(self) -> None:  # temporarily locations are taken from txt file, in the future remake to db
+        """Temporary solution."""
+        with open("locations.txt") as f:  # noqa: PTH123
+            text = f.read()
+        locs = text.split("\n")
+        pos_locs = []
+        for _ in range(10):
+            loc = choice(locs)
+            pos_locs.append(loc)
+            locs.remove(loc)
+        self.possible_locations = dict(enumerate(pos_locs, 1))
+        self.game_loc = choice(pos_locs)

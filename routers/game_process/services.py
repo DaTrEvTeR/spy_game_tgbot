@@ -75,4 +75,5 @@ async def setup_game_data(game_data: GameData) -> None:
     """
     game_data.spies = set_spies(game_data)
     game_data.order_dict = set_players_order(game_data)
+    game_data.set_loc()
     await game_data.save()

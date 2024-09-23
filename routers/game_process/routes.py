@@ -32,6 +32,10 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
 
     await setup_game_data(game_data)
 
+    pos_locs = ""
+    for num, loc in game_data.possible_locations.items():
+        pos_locs += f"{num}. {loc}\n"
+    await callback.message.answer(text=f"Список возможных локаций:\n\n{pos_locs}")
     await callback.message.answer(
         text=game_data.count_workers_and_spies,
         reply_markup=my_role,
@@ -57,20 +61,12 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
 
     if callback.from_user in game_data.spies:
         await callback.answer(
-            text=(
-                "Вы шпион"
-                "\nЗадавайте вопросы осторожно и внимательно читайте ответы игроков, вам нужно вычислить локацию"
-                "\nКак только будете уверенны в ответе пропишите команду /guess"
-            ),
+            text=("Шпион" "\n\nСписок возможных локаций уже в чате"),
             show_alert=True,
         )
     else:
         await callback.answer(
-            text=(
-                "Вы сотрудник"
-                "\nЗадавайте вопросы осторожно и внимательно читайте ответы игроков, вам нужно определить кто шпион"
-                "\nКак только будете уверенны в ответе пропишите команду /vote"
-            ),
+            text=("Вы сотрудник" f"\n\nЛокация:\n{game_data.game_loc}"),
             show_alert=True,
         )
 
