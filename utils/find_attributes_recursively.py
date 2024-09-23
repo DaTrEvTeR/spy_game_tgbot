@@ -4,7 +4,7 @@ from types import ModuleType
 from typing import Any, Dict
 
 
-def find_attributes_recursively(
+def find_attributes(
     module: ModuleType,
     attribute_name: str | None = None,
     attribute_type: type | None = None,
@@ -38,7 +38,7 @@ def find_attributes_recursively(
                 if is_pkg:
                     submodule = module_spec.loader.load_module(module_name)
                     attributes.update(
-                        find_attributes_recursively(submodule, attribute_name, attribute_type, match_module_name),
+                        find_attributes(submodule, attribute_name, attribute_type, match_module_name),
                     )
                 elif not match_module_name or module_name == match_module_name:
                     submodule = module_spec.loader.load_module(module_name)

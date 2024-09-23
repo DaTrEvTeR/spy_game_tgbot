@@ -24,14 +24,16 @@ async def process_remaining_players(message: Message, game_data: GameData) -> No
     """
     if len(game_data.spies) == 0:
         await game_data.state.clear()
-        await message.answer(text="Работники выиграли!")
+        await message.answer(text=f"Работники выиграли!\n\nЛокация была: '{game_data.game_loc}'")
     elif len(game_data.order_dict) - len(game_data.spies) <= len(game_data.spies):
         await game_data.state.clear()
         spies_message = ""
         for spy in game_data.spies:
             spies_message += f"{get_user_mention(spy)} "
         response_message = (
-            f"Ничья. Работники не смогли вычислить шпионов, а шпионы определить локацию\nШпионами были: {spies_message}"
+            f"Ничья. Работники не смогли вычислить шпионов, а шпионы определить локацию"
+            f"\n\nШпионами были: {spies_message}"
+            f"\n\nЛокация была: '{game_data.game_loc}'"
         )
         await message.answer(text=response_message)
     else:

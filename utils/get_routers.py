@@ -1,7 +1,7 @@
 from aiogram import Router
 
 import routers
-from utils.find_attributes_recursively import find_attributes_recursively
+from utils.find_attributes_recursively import find_attributes
 
 
 def get_routers() -> list[Router]:
@@ -14,7 +14,7 @@ def get_routers() -> list[Router]:
         A list of `Router` instances found in the "routes" modules across the routers package.
     """
     return list(
-        find_attributes_recursively(
+        find_attributes(
             module=routers,
             attribute_type=Router,
             match_module_name="routes",

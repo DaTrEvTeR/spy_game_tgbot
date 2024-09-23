@@ -90,7 +90,7 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     game_data = await GameData.init(state=state)
 
     if (
-        callback.from_user != game_data.order_dict[game_data.cur_order_num]
+        callback.from_user.id != game_data.order_dict[game_data.cur_order_num].id
         and callback.from_user.id != await get_bot_id()
     ):
         await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
@@ -163,5 +163,5 @@ async def check_if_message_from_cur_turn_user(message: Message, state: FSMContex
     """
     game_data = await GameData.init(state=state)
 
-    if message.from_user != game_data.order_dict[game_data.cur_order_num]:
+    if message.from_user.id != game_data.order_dict[game_data.cur_order_num].id:
         await message.delete()
