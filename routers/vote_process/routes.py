@@ -30,7 +30,7 @@ async def init_vote(callback: CallbackQuery, state: FSMContext) -> None:
     await process_vote_results(vote_msg=vote_msg, game_data=game_data)
 
 
-@vote_process_router.callback_query()
+@vote_process_router.callback_query(GameStates.vote)
 async def handle_vote(callback: CallbackQuery, state: FSMContext) -> None:
     """Handles a user's vote by processing the callback query and updating the game data.
 
@@ -41,6 +41,8 @@ async def handle_vote(callback: CallbackQuery, state: FSMContext) -> None:
     state : FSMContext
         The state context used to manage the game data and handle the vote.
     """
-    game_data = await GameData.init(state=state)
-
-    await process_vote(callback=callback, game_data=game_data)
+    if callback.data.isdigit():
+        game_data = await GameData.init(state=state)
+        await process_vote(callback=callback, game_data=game_data)
+    else:
+        await callback.answer()

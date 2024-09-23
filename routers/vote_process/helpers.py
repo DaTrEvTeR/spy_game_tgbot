@@ -106,18 +106,18 @@ async def kick_user(vote_msg: Message, game_data: GameData, max_vote_count: int)
     max_vote_count : int
         The highest number of votes received by a player.
     """
-    player_for_kick_id = get_key(dictionary=game_data.votes, value=max_vote_count)
-    player_for_kick = game_data.order_dict[int(player_for_kick_id)]
+    player_order_num = get_key(dictionary=game_data.votes, value=max_vote_count)
+    player = game_data.order_dict[int(player_order_num)]
     response_message = (
-        f"Большинство игроков считает, что шпионом является {player_for_kick_id}. {get_user_mention(player_for_kick)}"
+        f"Большинство игроков считает, что шпионом является {player_order_num}. {get_user_mention(player)}"
     )
     await vote_msg.answer(text=response_message)
 
-    game_data.order_dict.pop(int(player_for_kick_id))
-    if player_for_kick in game_data.spies:
-        response_message = f"{player_for_kick_id}. {get_user_mention(player_for_kick)} был шпионом!"
-        game_data.spies.remove(player_for_kick)
+    game_data.order_dict.pop(int(player_order_num))
+    if player in game_data.spies:
+        response_message = f"{player_order_num}. {get_user_mention(player)} был шпионом!"
+        game_data.spies.remove(player)
     else:
-        response_message = f"{player_for_kick_id}. {get_user_mention(player_for_kick)} был работником!"
+        response_message = f"{player_order_num}. {get_user_mention(player)} был работником!"
 
     await vote_msg.answer(text=response_message)

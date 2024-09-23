@@ -71,7 +71,7 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
         )
 
 
-@game_process_router.callback_query(F.data == "finished")
+@game_process_router.callback_query(F.data == "finished", GameStates.game)
 async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     """Handles the callback when a game turn is finished and proceeds to the next player's turn.
 
@@ -95,7 +95,7 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     ):
         await callback.answer(text="Сейчас не ваш ход!", show_alert=True)
         return
-
+    await callback.message.edit_reply_markup()
     await pass_turn(callback, game_data)
 
 
