@@ -147,7 +147,7 @@ async def ready_to_reveal(message: Message, state: FSMContext) -> None:
     await feed_callback(message, "reveal_role")
 
 
-@game_process_router.message(F.text[0] != "/")
+@game_process_router.message((F.text[0] != "/") | (F.content_type.in_({"photo", "video", "voice", "sticker"})))
 async def check_if_message_from_cur_turn_user(message: Message, state: FSMContext) -> None:
     """Checks if the message is sent by the current player whose turn it is.
 
