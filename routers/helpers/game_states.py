@@ -49,6 +49,7 @@ class GameData:
     votes: dict[str, int] = field(default_factory=dict)
     possible_locations: dict = field(default_factory=dict)
     game_loc: str = field(default_factory=str)
+    reaveled_spy: Optional[User] = None
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":
