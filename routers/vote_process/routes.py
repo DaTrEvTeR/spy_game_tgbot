@@ -5,12 +5,12 @@ from aiogram.types import CallbackQuery
 from routers.helpers import GameData, GameStates
 from routers.vote_process.services import process_vote, process_vote_results, run_wait_task, send_voting_message
 
-router = Router(name="vote_process")
+vote_process_router = Router(name="vote_process")
 
-router.message.filter(F.chat.type.in_({"group", "supergroup"}), GameStates.vote)
+vote_process_router.message.filter(F.chat.type.in_({"group", "supergroup"}), GameStates.vote)
 
 
-@router.callback_query(F.data == "start_vote")
+@vote_process_router.callback_query(F.data == "start_vote")
 async def init_vote(callback: CallbackQuery, state: FSMContext) -> None:
     """Initializes the voting process by setting the game state to voting,
     sending the voting message, and starting the wait task.
@@ -24,14 +24,13 @@ async def init_vote(callback: CallbackQuery, state: FSMContext) -> None:
     """
     game_data = await GameData.init(state=state)
 
-    await game_data.state.set_state(GameStates.vote)
     vote_msg = await send_voting_message(callback=callback, game_data=game_data)
 
     await run_wait_task(game_data=game_data)
     await process_vote_results(vote_msg=vote_msg, game_data=game_data)
 
 
-@router.callback_query()
+@vote_process_router.callback_query()
 async def handle_vote(callback: CallbackQuery, state: FSMContext) -> None:
     """Handles a user's vote by processing the callback query and updating the game data.
 

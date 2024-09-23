@@ -4,15 +4,15 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
-from routers.game_process.services import pass_turn, question_turn, setup_game_state
+from routers.game_process.services import pass_turn, question_turn, setup_game_data
 from routers.helpers import GameData, GameStates, feed_callback, get_bot_id, get_key, get_user_mention
 
-router = Router(name="game_process")
+game_process_router = Router(name="game_process")
 
-router.message.filter(F.chat.type.in_({"group", "supergroup"}), GameStates.game)
+game_process_router.message.filter(F.chat.type.in_({"group", "supergroup"}), GameStates.game)
 
 
-@router.callback_query(F.data == "init_game")
+@game_process_router.callback_query(F.data == "init_game")
 async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
     """Initializes the game by assigning spies and setting the turn order.
 
@@ -30,7 +30,7 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
     """
     game_data = await GameData.init(state=state)
 
-    await setup_game_state(game_data)
+    await setup_game_data(game_data)
 
     await callback.message.answer(
         text=game_data.count_workers_and_spies,
@@ -39,7 +39,7 @@ async def init_game(callback: CallbackQuery, state: FSMContext) -> None:
     await question_turn(callback=callback, game_data=game_data)
 
 
-@router.callback_query(F.data == "my_role")
+@game_process_router.callback_query(F.data == "my_role")
 async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
     """Informs the player of their role (spy or regular player) when they check their role.
 
@@ -75,7 +75,7 @@ async def check_role(callback: CallbackQuery, state: FSMContext) -> None:
         )
 
 
-@router.callback_query(F.data == "finished")
+@game_process_router.callback_query(F.data == "finished")
 async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     """Handles the callback when a game turn is finished and proceeds to the next player's turn.
 
@@ -103,7 +103,7 @@ async def finished_button(callback: CallbackQuery, state: FSMContext) -> None:
     await pass_turn(callback, game_data)
 
 
-@router.message(Command("vote"))
+@game_process_router.message(Command("vote"))
 async def ready_to_vote(message: Message, state: FSMContext) -> None:
     game_data = await GameData.init(state=state)
 
@@ -116,10 +116,11 @@ async def ready_to_vote(message: Message, state: FSMContext) -> None:
     await message.answer(text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} готов голосовать")
     await message.delete()
     if len(game_data.ready_to_vote) > len(game_data.order_dict) / 2:
+        await game_data.state.set_state(GameStates.vote)
         await feed_callback(message, "start_vote")
 
 
-@router.message(Command("reveal"))
+@game_process_router.message(Command("reveal"))
 async def ready_to_reveal(message: Message, state: FSMContext) -> None:
     """Handles the command to reveal a player's role and starts the reveal process.
 
@@ -146,10 +147,11 @@ async def ready_to_reveal(message: Message, state: FSMContext) -> None:
         text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} решил раскрыть свою роль"
     )
     await message.delete()
+    await game_data.state.set_state(GameStates.reveal)
     await feed_callback(message, "reveal_role")
 
 
-@router.message(F.text[0] != "/")
+@game_process_router.message(F.text[0] != "/")
 async def check_if_message_from_cur_turn_user(message: Message, state: FSMContext) -> None:
     """Checks if the message is sent by the current player whose turn it is.
 

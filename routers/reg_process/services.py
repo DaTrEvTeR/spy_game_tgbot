@@ -74,7 +74,7 @@ async def manage_registration_timer(game_data: GameData) -> bool:
         return True
 
 
-async def start_game(reg_message: Message) -> None:
+async def start_game(reg_message: Message, game_data: GameData) -> None:
     """Starts the game if the required number of players is reached.
 
     Parameters
@@ -84,8 +84,8 @@ async def start_game(reg_message: Message) -> None:
     state : FSMContext
         The current state of the FSM used to track the game's state.
     """
+    await game_data.state.set_state(GameStates.game)
     await reg_message.edit_text(text="Набрано нужное количество игроков. Игра начинается.", reply_markup=None)
-
     await feed_callback(reg_message, "init_game")
 
 

@@ -46,6 +46,7 @@ class GameData:
     vote_task: Optional[Task] = None
     voted_players: set[User] = field(default_factory=set)
     votes: dict[str, int] = field(default_factory=dict)
+    # possible_locations:
 
     @classmethod
     async def init(cls, state: FSMContext) -> "GameData":

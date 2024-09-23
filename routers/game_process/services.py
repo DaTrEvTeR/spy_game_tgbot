@@ -2,7 +2,7 @@ from aiogram.types import CallbackQuery
 
 from routers.game_process.helpers import get_asnwerer, set_players_order, set_spies
 from routers.game_process.keyboards import complete_msg
-from routers.helpers import GameData, GameStates, get_user_mention
+from routers.helpers import GameData, get_user_mention
 
 
 async def answer_turn(callback: CallbackQuery, game_data: GameData) -> None:
@@ -63,7 +63,7 @@ async def pass_turn(callback: CallbackQuery, game_data: GameData) -> None:
         await answer_turn(callback, game_data)
 
 
-async def setup_game_state(game_data: GameData) -> None:
+async def setup_game_data(game_data: GameData) -> None:
     """Prepares the game by setting the game state, assigning spies, and
     determining the order of players before saving the game data.
 
@@ -73,7 +73,6 @@ async def setup_game_state(game_data: GameData) -> None:
         An instance of the GameData class that manages the current state
         and settings of the game, including players, roles, and order.
     """
-    await game_data.state.set_state(GameStates.game)
     game_data.spies = set_spies(game_data)
     game_data.order_dict = set_players_order(game_data)
     await game_data.save()

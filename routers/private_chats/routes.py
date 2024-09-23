@@ -5,13 +5,13 @@ from aiogram.types import Message
 from core.settings import settings
 from routers.private_chats.keyboards import replykeyboard
 
-router = Router(name="private_chat_router")
-router.message.filter(
+private_chats_router = Router(name="private_chat_router")
+private_chats_router.message.filter(
     F.chat.type == "private",
 )
 
 
-@router.message(CommandStart())
+@private_chats_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     """This handler receives messages with the `/start` command and
     sends a personalized greeting to the user.
@@ -28,7 +28,7 @@ async def command_start_handler(message: Message) -> None:
     )
 
 
-@router.message(F.text == "Правила")
+@private_chats_router.message(F.text == "Правила")
 async def handle_rules(message: Message) -> None:
     """Handles the 'Правила' button press and sends the game rules.
 
@@ -40,7 +40,7 @@ async def handle_rules(message: Message) -> None:
     await message.answer(text=settings.game_rules)
 
 
-@router.message(F.text == "Как пользоваться ботом")
+@private_chats_router.message(F.text == "Как пользоваться ботом")
 async def handle_how_to_use(message: Message) -> None:
     """Handles the 'Как пользоваться ботом' button press and sends instructions.
 
