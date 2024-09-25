@@ -2,7 +2,6 @@ from aiogram.types import Message
 
 from .feed_callback import feed_callback
 from .game_states import GameData, GameStates
-from .get_user_mention import get_user_mention
 
 
 async def process_remaining_players(message: Message, game_data: GameData) -> None:
@@ -29,7 +28,7 @@ async def process_remaining_players(message: Message, game_data: GameData) -> No
         await game_data.state.clear()
         spies_message = ""
         for spy in game_data.spies:
-            spies_message += f"{get_user_mention(spy)} "
+            spies_message += f"{spy.mention_html()} "
         response_message = (
             f"Ничья. Работники не смогли вычислить шпионов, а шпионы определить локацию"
             f"\n\nШпионами были: {spies_message}"

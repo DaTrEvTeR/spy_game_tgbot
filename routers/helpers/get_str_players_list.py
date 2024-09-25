@@ -1,7 +1,5 @@
 from aiogram.types import User
 
-from .get_user_mention import get_user_mention
-
 
 def get_str_players_list(players: dict[int, User]) -> str:
     """Function to get all usernames or first names with order nums from dict of Users objects.
@@ -18,6 +16,6 @@ def get_str_players_list(players: dict[int, User]) -> str:
     """
     players_str = ""
     for num, player in players.items():
-        player_str = get_user_mention(player)
+        player_str = player.mention_html()
         players_str += f"{num}. {player_str}\n"
     return players_str

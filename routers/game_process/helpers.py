@@ -3,7 +3,7 @@ from random import choice, shuffle
 from aiogram.types import User
 
 from core.settings import settings
-from routers.helpers import GameData, get_user_mention
+from routers.helpers import GameData
 
 
 def get_asnwerer(game_data: GameData) -> str:
@@ -23,10 +23,10 @@ def get_asnwerer(game_data: GameData) -> str:
         The username or first name of the player who will answer the question.
     """
     if game_data.cur_order_num != len(game_data.order_dict):
-        answerer = get_user_mention(game_data.order_dict[game_data.cur_order_num + 1])
+        answerer = game_data.order_dict[game_data.cur_order_num + 1].mention_html()
         num = game_data.cur_order_num + 1
     else:
-        answerer = get_user_mention(game_data.order_dict[1])
+        answerer = game_data.order_dict[1].mention_html()
         num = 1
     return f"{num}. {answerer}"
 

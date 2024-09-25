@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery, Message
 
-from routers.helpers import GameData, get_key, get_user_mention
+from routers.helpers import GameData, get_key
 
 
 async def register_vote(callback: CallbackQuery, game_data: GameData) -> None:
@@ -36,7 +36,7 @@ async def send_confirmation_notification(callback: CallbackQuery, game_data: Gam
     callback_answer = f"Ваш голос за игрока {game_data.order_dict[int(callback.data)].first_name} учтен"
     await callback.answer(callback_answer)
     message_answer = (
-        f"{get_key(game_data.order_dict, callback.from_user)}. {get_user_mention(callback.from_user)} " "сделал выбор"
+        f"{get_key(game_data.order_dict, callback.from_user)}. {callback.from_user.mention_html()} " "сделал выбор"
     )
     await callback.message.answer(message_answer)
 
@@ -55,7 +55,7 @@ async def show_results(vote_msg: Message, game_data: GameData) -> None:
     if game_data.votes:
         for player_num, count in game_data.votes.items():
             voted_for = game_data.order_dict[int(player_num)]
-            vote_results += f"\n{player_num}. {get_user_mention(voted_for)}: {count}"
+            vote_results += f"\n{player_num}. {voted_for.mention_html()}: {count}"
         await vote_msg.answer(f"Результаты голосования:\n{vote_results}")
     else:
         await vote_msg.answer("Никто не выбрал кандидата в шпионы")
@@ -108,16 +108,14 @@ async def kick_user(vote_msg: Message, game_data: GameData, max_vote_count: int)
     """
     player_order_num = get_key(dictionary=game_data.votes, value=max_vote_count)
     player = game_data.order_dict[int(player_order_num)]
-    response_message = (
-        f"Большинство игроков считает, что шпионом является {player_order_num}. {get_user_mention(player)}"
-    )
+    response_message = f"Большинство игроков считает, что шпионом является {player_order_num}. {player.mention_html()}"
     await vote_msg.answer(text=response_message)
 
     game_data.order_dict.pop(int(player_order_num))
     if player in game_data.spies:
-        response_message = f"{player_order_num}. {get_user_mention(player)} был шпионом!"
+        response_message = f"{player_order_num}. {player.mention_html()} был шпионом!"
         game_data.spies.remove(player)
     else:
-        response_message = f"{player_order_num}. {get_user_mention(player)} был работником!"
+        response_message = f"{player_order_num}. {player.mention_html()} был работником!"
 
     await vote_msg.answer(text=response_message)

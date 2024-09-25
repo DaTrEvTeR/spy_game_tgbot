@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery, Message
 
 from routers.game_process.keyboards import my_role
 from routers.game_process.services import pass_turn, question_turn, setup_game_data
-from routers.helpers import GameData, GameStates, feed_callback, get_bot_id, get_key, get_user_mention
+from routers.helpers import GameData, GameStates, feed_callback, get_bot_id, get_key
 
 game_process_router = Router(name="game_process")
 
@@ -109,7 +109,7 @@ async def ready_to_vote(message: Message, state: FSMContext) -> None:
         return
 
     game_data.ready_to_vote.add(user)
-    await message.answer(text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} готов голосовать")
+    await message.answer(text=f"{get_key(game_data.order_dict, user)}. {user.mention_html()} готов голосовать")
     await message.delete()
     if len(game_data.ready_to_vote) > len(game_data.order_dict) / 2:
         await game_data.state.set_state(GameStates.vote)
@@ -139,9 +139,7 @@ async def ready_to_reveal(message: Message, state: FSMContext) -> None:
         await message.delete()
         return
 
-    await message.answer(
-        text=f"{get_key(game_data.order_dict, user)}. {get_user_mention(user)} решил раскрыть свою роль"
-    )
+    await message.answer(text=f"{get_key(game_data.order_dict, user)}. {user.mention_html()} решил раскрыть свою роль")
     await message.delete()
     await game_data.state.set_state(GameStates.reveal)
     await feed_callback(message, "reveal_role")

@@ -1,7 +1,5 @@
 from aiogram.types import User
 
-from .get_user_mention import get_user_mention
-
 
 def get_str_players_from_set(players: set[User]) -> str:
     """Function to get all usernames or first names from set of Users objects.
@@ -18,6 +16,6 @@ def get_str_players_from_set(players: set[User]) -> str:
     """
     players_str = ""
     for player in players:
-        player_str = get_user_mention(player)
+        player_str = player.mention_html()
         players_str += f"{player_str}\n"
     return players_str

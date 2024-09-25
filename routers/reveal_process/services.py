@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 
-from routers.helpers import GameData, get_key, get_user_mention, process_remaining_players
+from routers.helpers import GameData, get_key, process_remaining_players
 from routers.reveal_process.keyboards import locations
 
 
@@ -21,7 +21,7 @@ async def process_spy_answer(callback: CallbackQuery, game_data: GameData) -> No
     if game_data.possible_locations[int(callback.data)] == game_data.game_loc:
         await callback.message.answer(
             text=(
-                f"Шпион {get_user_mention(callback.from_user)} правильно отгадал локацию '{game_data.game_loc}'"
+                f"Шпион {callback.from_user.mention_html()} правильно отгадал локацию '{game_data.game_loc}'"
                 "\n\nРаботники проиграли"
             )
         )
@@ -29,7 +29,7 @@ async def process_spy_answer(callback: CallbackQuery, game_data: GameData) -> No
         return
 
     await callback.message.answer(
-        text=f"Шпион {get_user_mention(callback.from_user)} не отгадал локацию и исключается из игры"
+        text=f"Шпион {callback.from_user.mention_html()} не отгадал локацию и исключается из игры"
     )
     game_data.order_dict.pop(int(player_order_num))
     game_data.spies.remove(callback.from_user)
@@ -41,19 +41,19 @@ async def process_reveal_command(callback: CallbackQuery, game_data: GameData) -
     player = callback.from_user
     player_num = get_key(game_data.order_dict, player)
     if player in game_data.spies:
-        await callback.message.answer(text=f"{player_num}. {get_user_mention(player)} оказался шпионом!")
+        await callback.message.answer(text=f"{player_num}. {player.mention_html()} оказался шпионом!")
         game_data.reaveled_spy = callback.from_user
         await game_data.save()
         pos_locs = ""
         for num, loc in game_data.possible_locations.items():
             pos_locs += f"{num}. {loc}\n"
         await callback.message.answer(
-            text=f"Список возможных локаций:\n\n{pos_locs}\n{get_user_mention(player)} выбирает:",
+            text=f"Список возможных локаций:\n\n{pos_locs}\n{player.mention_html()} выбирает:",
             reply_markup=locations(list(game_data.possible_locations.keys())),
         )
 
     else:
-        msg = f"{player_num}. {get_user_mention(player)} был работником"
+        msg = f"{player_num}. {player.mention_html()} был работником"
         await callback.message.answer(text=msg)
         game_data.order_dict.pop(player_num)
         await game_data.save()
