@@ -40,6 +40,18 @@ async def handle_rules(message: Message) -> None:
     await message.answer(text=settings.game_rules)
 
 
+@private_chats_router.message(F.text == "Список команд")
+async def show_commands_list(message: Message) -> None:
+    """Handles the 'Список команд' button press and sends the bot`s commands.
+
+    Parameters
+    ----------
+    message : Message
+        Message object with "Список команд" text
+    """
+    await message.answer(text=settings.commands)
+
+
 @private_chats_router.message(F.text == "Как пользоваться ботом")
 async def handle_how_to_use(message: Message) -> None:
     """Handles the 'Как пользоваться ботом' button press and sends instructions.
